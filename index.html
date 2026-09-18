@@ -16,8 +16,8 @@ header{background:linear-gradient(120deg,#4f46e5,#7c3aed);color:#fff;padding:22p
 button{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}.primary{background:var(--p);color:#fff}.green{background:var(--g);color:#fff}.danger{background:#fee2e2;color:#b91c1c}
 .hidden{display:none!important}.notice{background:#eefbf3;border:1px solid #bbf7d0;padding:11px;border-radius:10px;font-size:13px}.error{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
 .schedule td,.schedule th{padding:8px;border-bottom:1px solid #eee;text-align:left;font-size:13px}table{width:100%;border-collapse:collapse}
-.login{max-width:430px;margin:55px auto}.login h2{margin-top:0}.userbox{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.small{font-size:12px;opacity:.9}
-@media(max-width:800px){.grid,.stats,.row{grid-template-columns:1fr}.wrap{padding:11px}}
+.person-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.person-card{border-radius:16px;padding:15px;border:2px solid transparent}.person-parent{background:#fff7ed;border-color:#fdba74}.person-6{background:#eff6ff;border-color:#93c5fd}.person-3{background:#f5f3ff;border-color:#c4b5fd}.person-card h2{margin:0 0 10px}.mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}.mini-stat{background:#ffffffc9;border-radius:10px;padding:8px;text-align:center;font-size:12px}.mini-stat b{display:block;font-size:20px}.scrollbox{max-height:330px;overflow-y:auto;padding-right:6px;scrollbar-width:auto}.scrollbox::-webkit-scrollbar{width:10px}.scrollbox::-webkit-scrollbar-thumb{background:#aeb7c7;border-radius:99px}.scrollbox::-webkit-scrollbar-track{background:#eef2f7;border-radius:99px}.login{max-width:430px;margin:55px auto}.login h2{margin-top:0}.userbox{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.small{font-size:12px;opacity:.9}
+@media(max-width:800px){.grid,.stats,.row,.person-grid{grid-template-columns:1fr}.wrap{padding:11px}}
 </style>
 <script src="firebase-config.js"></script>
 </head>
@@ -37,6 +37,12 @@ button{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:poin
 <section id="appView" class="hidden">
 <div id="syncMsg" class="notice">🟢 Đang đồng bộ dữ liệu online với Firebase.</div><br>
 <section id="parentView" class="hidden">
+<div class="card"><h2>📊 Tổng hợp công việc từng người</h2><p class="meta">Theo dõi riêng trạng thái chưa hoàn thành, quá hạn và đã hoàn thành. Mỗi khung có thanh cuộn riêng.</p>
+<div class="person-grid">
+<div class="person-card person-parent"><h2>🧑‍💼 Việc của Bố/Mẹ</h2><div class="mini-stats"><div class="mini-stat">Chưa xong<b id="pOpen">0</b></div><div class="mini-stat">Quá hạn<b id="pLate">0</b></div><div class="mini-stat">Đã xong<b id="pDone">0</b></div></div><div id="pTasks" class="scrollbox"></div></div>
+<div class="person-card person-6"><h2>🎒 Việc của Con lớp 6</h2><div class="mini-stats"><div class="mini-stat">Chưa xong<b id="c6Open">0</b></div><div class="mini-stat">Quá hạn<b id="c6Late">0</b></div><div class="mini-stat">Đã xong<b id="c6Done">0</b></div></div><div id="c6Tasks" class="scrollbox"></div></div>
+<div class="person-card person-3"><h2>📘 Việc của Con lớp 3</h2><div class="mini-stats"><div class="mini-stat">Chưa xong<b id="c3Open">0</b></div><div class="mini-stat">Quá hạn<b id="c3Late">0</b></div><div class="mini-stat">Đã xong<b id="c3Done">0</b></div></div><div id="c3Tasks" class="scrollbox"></div></div>
+</div></div>
 <div class="card"><h2>🧑‍💼 Việc cần làm của Bố/Mẹ</h2><p class="meta">Ghi nhanh công việc hằng ngày/tuần để tránh bỏ sót.</p><label>Việc cần làm</label><textarea id="parentWork" rows="2" placeholder="VD: Nộp báo cáo tuần, đóng học phí, đặt lịch khám..."></textarea><div class="row"><div><label>Hạn hoàn thành</label><input id="parentDue" type="datetime-local"></div><div><label>Mức độ</label><select id="parentPriority"><option>Bình thường</option><option>Quan trọng</option><option>Gấp</option></select></div></div><button class="primary" onclick="addParentWork()">➕ Thêm việc cần làm</button><div id="parentWorkList" style="margin-top:12px"></div></div>
 <div class="stats"><div class="stat">Chưa làm<b id="sOpen">0</b></div><div class="stat">Hôm nay<b id="sToday">0</b></div><div class="stat">Quá hạn<b id="sLate">0</b></div><div class="stat">Đã xong<b id="sDone">0</b></div></div><br>
 <div class="grid"><div>
@@ -44,14 +50,14 @@ button{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:poin
 <label>Nội dung cần làm</label><textarea id="content" rows="3" placeholder="VD: Làm bài 1–5 trang 36..."></textarea>
 <div class="row"><div><label>Hạn hoàn thành</label><input id="due" type="datetime-local"></div><div><label>Mức độ</label><select id="priority"><option>Bình thường</option><option>Quan trọng</option><option>Gấp</option></select></div></div>
 <button class="primary" onclick="addTask()">➕ Giao bài</button></div>
-<div class="card"><h2>📋 Tất cả bài tập</h2><div id="allTasks"></div></div></div>
+<div class="card"><h2>📋 Tất cả bài tập</h2><div id="allTasks" class="scrollbox"></div></div></div>
 <div><div class="card"><h2>📅 Thêm lịch học</h2><select id="schChild"><option value="6">Lớp 6</option><option value="3">Lớp 3</option></select><input id="schDay" placeholder="Thứ 2 / Thứ 3..."><input id="schTime" placeholder="07:00–11:00"><input id="schText" placeholder="Học chính / Tiếng Anh / Toán..."><button class="primary" onclick="addSchedule()">+ Thêm lịch</button></div>
-<div class="card"><h2>🗓 Lịch học</h2><div id="allSchedule"></div></div></div></div>
+<div class="card"><h2>🗓 Lịch học</h2><div id="allSchedule" class="scrollbox"></div></div></div></div>
 </section>
 
 <section id="studentView" class="hidden">
 <div class="card"><h2 id="studentTitle"></h2><div id="studentSummary" class="notice"></div></div>
-<div class="grid"><div class="card"><h2>🎯 Việc con cần làm</h2><div id="studentTasks"></div></div><div class="card"><h2>🕒 Lịch học</h2><div id="studentSchedule"></div></div></div>
+<div class="grid"><div class="card"><h2>🎯 Việc con cần làm</h2><div id="studentTasks" class="scrollbox"></div></div><div class="card"><h2>🕒 Lịch học</h2><div id="studentSchedule" class="scrollbox"></div></div></div>
 </section>
 </section>
 </main>
@@ -75,15 +81,21 @@ function taskHTML(t,parent){
  return '<div class="task '+(t.done?'done':'')+'"><span class="pill '+(t.done?'complete':late?'urgent':'')+'">'+esc(label)+'</span><h3>'+esc(t.subject||"Bài tập")+' — '+esc(t.content)+'</h3><div class="meta">🎒 Lớp '+esc(t.child)+' • ⏰ '+(d?d.toLocaleString("vi-VN"):"Không đặt hạn")+'</div><div style="margin-top:9px">'+(!t.done?'<button class="green" data-action="done" data-id="'+t.id+'">✅ '+(parent?'Đánh dấu xong':'Con đã hoàn thành')+'</button>':parent?'<button data-action="reopen" data-id="'+t.id+'">↩ Mở lại</button>':'')+(parent?' <button class="danger" data-action="delete" data-id="'+t.id+'">Xóa</button>':'')+'</div></div>';
 }
 function scheduleHTML(arr){return '<table class="schedule"><tr><th>Ngày</th><th>Giờ</th><th>Nội dung</th></tr>'+arr.map(x=>'<tr><td>'+esc(x.day)+'</td><td>'+esc(x.time)+'</td><td>'+esc(x.text)+'</td></tr>').join('')+'</table>'}
+function personSummary(arr,prefix,listId){
+ const now=new Date(), sorted=[...arr].sort((a,b)=>{if(a.done!==b.done)return a.done?1:-1;const ad=a.due?dueDate(a.due).getTime():Infinity,bd=b.due?dueDate(b.due).getTime():Infinity;return ad-bd});
+ $(prefix+"Open").textContent=arr.filter(x=>!x.done).length;$(prefix+"Late").textContent=arr.filter(x=>!x.done&&x.due&&dueDate(x.due)<now).length;$(prefix+"Done").textContent=arr.filter(x=>x.done).length;
+ $(listId).innerHTML=sorted.length?sorted.map(x=>taskHTML(x,true)).join(""):'<p class="meta">Chưa có công việc.</p>';
+}
 function render(){
  const now=new Date(),today=new Date().toLocaleDateString("en-CA");
  if(profile?.role==="parent"){
-  const schoolTasks=tasks.filter(x=>x.child==="6"||x.child==="3"), parentTasks=tasks.filter(x=>x.child==="parent");
+  const schoolTasks=tasks.filter(x=>x.child==="6"||x.child==="3"), parentTasks=tasks.filter(x=>x.child==="parent"), child6=tasks.filter(x=>x.child==="6"), child3=tasks.filter(x=>x.child==="3");
+  personSummary(parentTasks,"p","pTasks");personSummary(child6,"c6","c6Tasks");personSummary(child3,"c3","c3Tasks");
   $("sOpen").textContent=schoolTasks.filter(x=>!x.done).length;$("sDone").textContent=schoolTasks.filter(x=>x.done).length;
   $("sLate").textContent=schoolTasks.filter(x=>!x.done&&x.due&&dueDate(x.due)<now).length;
   $("sToday").textContent=schoolTasks.filter(x=>x.due&&x.due.slice(0,10)===today).length;
   $("allTasks").innerHTML=schoolTasks.length?schoolTasks.map(x=>taskHTML(x,true)).join(""):"Chưa có bài được giao.";
-  $("parentWorkList").innerHTML=parentTasks.length?parentTasks.map(x=>taskHTML(x,true)).join(""):"<p class=\"meta\">Chưa có việc cá nhân cần làm.</p>";
+  $("parentWorkList").className="scrollbox"; $("parentWorkList").innerHTML=parentTasks.length?parentTasks.map(x=>taskHTML(x,true)).join(""):"<p class=\"meta\">Chưa có việc cá nhân cần làm.</p>";
   $("allSchedule").innerHTML=scheduleHTML(schedule);
  }else if(profile){
   const open=tasks.filter(x=>!x.done);

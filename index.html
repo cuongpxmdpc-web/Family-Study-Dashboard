@@ -11,7 +11,7 @@ header{background:linear-gradient(120deg,#4f46e5,#7c3aed);color:#fff;padding:22p
 .card{background:var(--c);border-radius:16px;padding:17px;box-shadow:0 5px 22px #1f2a4412;margin-bottom:16px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .stat{padding:13px;background:#f8fafc;border-radius:12px}.stat b{display:block;font-size:23px;margin-top:5px}.task{border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin:9px 0}
 .task h3{margin:6px 0;font-size:16px}.meta{color:var(--m);font-size:13px}.done{opacity:.62}.done h3{text-decoration:line-through}
-.pill{display:inline-block;border-radius:99px;padding:4px 8px;font-size:11px;font-weight:700;background:#eef2ff;color:#4338ca}.urgent{background:#fee2e2;color:#b91c1c}.complete{background:#dcfce7;color:#15803d}
+.todaytask{border-left:5px solid #d97706;background:#fffbeb}.todaytag{background:#fef3c7;color:#92400e}.futuretask{opacity:.86}.section-label{font-weight:800;margin:10px 0 6px;padding:7px 9px;border-radius:9px;background:#f8fafc}.pill{display:inline-block;border-radius:99px;padding:4px 8px;font-size:11px;font-weight:700;background:#eef2ff;color:#4338ca}.urgent{background:#fee2e2;color:#b91c1c}.complete{background:#dcfce7;color:#15803d}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:9px}input,select,textarea{width:100%;padding:10px;border:1px solid #d0d5dd;border-radius:9px;margin:5px 0 10px;background:#fff}
 button{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}.primary{background:var(--p);color:#fff}.green{background:var(--g);color:#fff}.danger{background:#fee2e2;color:#b91c1c}
 .hidden{display:none!important}.notice{background:#eefbf3;border:1px solid #bbf7d0;padding:11px;border-radius:10px;font-size:13px}.error{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
@@ -83,15 +83,28 @@ $("today").textContent=new Date().toLocaleDateString("vi-VN",{weekday:"long",day
 function clearSubs(){unsubs.forEach(f=>f());unsubs=[]}
 function showErr(msg){$("syncMsg").className="notice error";$("syncMsg").textContent="⚠️ "+msg}
 function dueDate(v){return v?new Date(v):null}
+function dateKey(d){if(!d)return "";const x=new Date(d);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0")}
 function taskHTML(t,parent){
- const d=dueDate(t.due),late=d&&!t.done&&d<new Date(),label=t.done?"ĐÃ XONG":late?"QUÁ HẠN":(t.priority||"Bình thường");
- return '<div class="task '+(t.done?'done':'')+'"><span class="pill '+(t.done?'complete':late?'urgent':'')+'">'+esc(label)+'</span><h3>'+esc(t.subject||"Bài tập")+' — '+esc(t.content)+'</h3><div class="meta">🎒 Lớp '+esc(t.child)+' • ⏰ '+(d?d.toLocaleString("vi-VN"):"Không đặt hạn")+'</div><div style="margin-top:9px">'+(!t.done?'<button class="green" data-action="done" data-id="'+t.id+'">✅ '+(parent?'Đánh dấu xong':'Con đã hoàn thành')+'</button>':parent?'<button data-action="reopen" data-id="'+t.id+'">↩ Mở lại</button>':'')+(parent?' <button class="danger" data-action="delete" data-id="'+t.id+'">Xóa</button>':'')+'</div></div>';
+ const d=dueDate(t.due),now=new Date(),todayKey=dateKey(now),isToday=d&&dateKey(d)===todayKey,late=d&&!t.done&&d<now&&!isToday,label=t.done?"ĐÃ XONG":late?"QUÁ HẠN":isToday?"HÔM NAY":(t.priority||"Bình thường");
+ const state=t.done?"done":isToday?"todaytask":d&&d>now?"futuretask":"";
+ return '<div class="task '+state+'"><span class="pill '+(t.done?'complete':late?'urgent':isToday?'todaytag':'')+'">'+esc(label)+'</span><h3>'+esc(t.subject||"Bài tập")+' — '+esc(t.content)+'</h3><div class="meta">🎒 Lớp '+esc(t.child)+' • ⏰ '+(d?d.toLocaleString("vi-VN"):"Không đặt hạn")+'</div><div style="margin-top:9px">'+(!t.done?'<button class="green" data-action="done" data-id="'+t.id+'">✅ '+(parent?'Đánh dấu xong':'Con đã hoàn thành')+'</button>':parent?'<button data-action="reopen" data-id="'+t.id+'">↩ Mở lại</button>':'')+(parent?' <button class="danger" data-action="delete" data-id="'+t.id+'">Xóa</button>':'')+'</div></div>';
 }
 function scheduleHTML(arr){return '<table class="schedule"><tr><th>Ngày</th><th>Giờ</th><th>Nội dung</th></tr>'+arr.map(x=>'<tr><td>'+esc(x.day)+'</td><td>'+esc(x.time)+'</td><td>'+esc(x.text)+'</td></tr>').join('')+'</table>'}
+function orderedHTML(arr,parent){
+ const now=new Date(),tk=dateKey(now),active=arr.filter(x=>!x.done),done=arr.filter(x=>x.done);
+ const late=active.filter(x=>x.due&&dueDate(x.due)<now&&dateKey(x.due)!==tk).sort((a,b)=>dueDate(a.due)-dueDate(b.due));
+ const today=active.filter(x=>x.due&&dateKey(x.due)===tk).sort((a,b)=>dueDate(a.due)-dueDate(b.due));
+ const future=active.filter(x=>!x.due||dateKey(x.due)>tk).sort((a,b)=>(a.due?dueDate(a.due).getTime():Infinity)-(b.due?dueDate(b.due).getTime():Infinity));
+ const finished=done.sort((a,b)=>(b.doneAt?.seconds||0)-(a.doneAt?.seconds||0));
+ let out=""; if(late.length)out+='<div class="section-label">🔴 Quá hạn – cần xử lý trước</div>'+late.map(x=>taskHTML(x,parent)).join("");
+ if(today.length)out+='<div class="section-label">⭐ Cần hoàn thành hôm nay</div>'+today.map(x=>taskHTML(x,parent)).join("");
+ if(future.length)out+='<div class="section-label">📅 Công việc sắp đến hạn</div>'+future.map(x=>taskHTML(x,parent)).join("");
+ if(finished.length)out+='<div class="section-label">✅ Đã hoàn thành</div>'+finished.map(x=>taskHTML(x,parent)).join(""); return out||'<p class="meta">Chưa có công việc.</p>';
+}
 function personSummary(arr,prefix,listId){
- const now=new Date(), sorted=[...arr].sort((a,b)=>{if(a.done!==b.done)return a.done?1:-1;const ad=a.due?dueDate(a.due).getTime():Infinity,bd=b.due?dueDate(b.due).getTime():Infinity;return ad-bd});
+ const now=new Date(), sorted=[...arr];
  $(prefix+"Open").textContent=arr.filter(x=>!x.done).length;$(prefix+"Late").textContent=arr.filter(x=>!x.done&&x.due&&dueDate(x.due)<now).length;$(prefix+"Done").textContent=arr.filter(x=>x.done).length;
- $(listId).innerHTML=sorted.length?sorted.map(x=>taskHTML(x,true)).join(""):'<p class="meta">Chưa có công việc.</p>';
+ $(listId).innerHTML=orderedHTML(sorted,true);
 }
 function render(){
  const now=new Date(),today=new Date().toLocaleDateString("en-CA");
@@ -101,15 +114,15 @@ function render(){
   $("sOpen").textContent=schoolTasks.filter(x=>!x.done).length;$("sDone").textContent=schoolTasks.filter(x=>x.done).length;
   $("sLate").textContent=schoolTasks.filter(x=>!x.done&&x.due&&dueDate(x.due)<now).length;
   $("sToday").textContent=schoolTasks.filter(x=>x.due&&x.due.slice(0,10)===today).length;
-  $("allTasks").innerHTML=schoolTasks.length?schoolTasks.map(x=>taskHTML(x,true)).join(""):"Chưa có bài được giao.";
-  $("parentWorkList").className="scrollbox"; $("parentWorkList").innerHTML=parentTasks.length?parentTasks.map(x=>taskHTML(x,true)).join(""):"<p class=\"meta\">Chưa có việc cá nhân cần làm.</p>";
+  $("allTasks").innerHTML=orderedHTML(schoolTasks,true);
+  $("parentWorkList").className="scrollbox"; $("parentWorkList").innerHTML=orderedHTML(parentTasks,true);
   $("allSchedule").innerHTML=scheduleHTML(schedule);
  }else if(profile){
   const open=tasks.filter(x=>!x.done), late=tasks.filter(x=>!x.done&&x.due&&dueDate(x.due)<now), done=tasks.filter(x=>x.done);
   $("stTotal").textContent=tasks.length;$("stOpen").textContent=open.length;$("stLate").textContent=late.length;$("stDone").textContent=done.length;
   $("studentTitle").textContent=profile.child==="6"?"🎒 Bài của con — Lớp 6":"📘 Bài của con — Lớp 3";
   $("studentSummary").innerHTML=open.length?'Con còn <b>'+open.length+'</b> việc cần hoàn thành. Làm xong nhớ bấm <b>Con đã hoàn thành</b>.':"🎉 Con không còn bài chưa hoàn thành.";
-  $("studentTasks").innerHTML=open.length?open.map(x=>taskHTML(x,false)).join(""):"<p>Không có bài đang chờ.</p>";
+  $("studentTasks").innerHTML=open.length?orderedHTML(open,false):"<p>Không có bài đang chờ.</p>";
   $("studentSchedule").innerHTML=scheduleHTML(schedule);
  }
 }

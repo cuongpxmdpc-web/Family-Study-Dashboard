@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function profile() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function parent() { return signedIn() && profile().role == 'parent'; }
+    function child(n) { return signedIn() && profile().role == 'child' && profile().child == n; }
+
+    match /users/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    match /tasks/{id} {
+      allow read: if parent() || child(resource.data.child);
+      allow create, delete: if parent();
+      allow update: if parent()
+        || (child(resource.data.child)
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['done','doneAt']));
+    }
+
+    match /schedule/{id} {
+      allow read: if parent() || child(resource.data.child);
+      allow create, update, delete: if parent();
+    }
+  }
+}

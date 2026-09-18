@@ -56,7 +56,14 @@ button{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:poin
 </section>
 
 <section id="studentView" class="hidden">
-<div class="card"><h2 id="studentTitle"></h2><div id="studentSummary" class="notice"></div></div>
+<div class="card"><h2 id="studentTitle"></h2>
+<div class="stats" style="margin-bottom:12px">
+<div class="stat">Tổng số việc<b id="stTotal">0</b></div>
+<div class="stat">Chưa hoàn thành<b id="stOpen">0</b></div>
+<div class="stat">Quá hạn<b id="stLate">0</b></div>
+<div class="stat">Đã hoàn thành<b id="stDone">0</b></div>
+</div>
+<div id="studentSummary" class="notice"></div></div>
 <div class="grid"><div class="card"><h2>🎯 Việc con cần làm</h2><div id="studentTasks" class="scrollbox"></div></div><div class="card"><h2>🕒 Lịch học</h2><div id="studentSchedule" class="scrollbox"></div></div></div>
 </section>
 </section>
@@ -98,7 +105,8 @@ function render(){
   $("parentWorkList").className="scrollbox"; $("parentWorkList").innerHTML=parentTasks.length?parentTasks.map(x=>taskHTML(x,true)).join(""):"<p class=\"meta\">Chưa có việc cá nhân cần làm.</p>";
   $("allSchedule").innerHTML=scheduleHTML(schedule);
  }else if(profile){
-  const open=tasks.filter(x=>!x.done);
+  const open=tasks.filter(x=>!x.done), late=tasks.filter(x=>!x.done&&x.due&&dueDate(x.due)<now), done=tasks.filter(x=>x.done);
+  $("stTotal").textContent=tasks.length;$("stOpen").textContent=open.length;$("stLate").textContent=late.length;$("stDone").textContent=done.length;
   $("studentTitle").textContent=profile.child==="6"?"🎒 Bài của con — Lớp 6":"📘 Bài của con — Lớp 3";
   $("studentSummary").innerHTML=open.length?'Con còn <b>'+open.length+'</b> việc cần hoàn thành. Làm xong nhớ bấm <b>Con đã hoàn thành</b>.':"🎉 Con không còn bài chưa hoàn thành.";
   $("studentTasks").innerHTML=open.length?open.map(x=>taskHTML(x,false)).join(""):"<p>Không có bài đang chờ.</p>";

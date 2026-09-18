@@ -37,6 +37,7 @@ button{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:poin
 <section id="appView" class="hidden">
 <div id="syncMsg" class="notice">🟢 Đang đồng bộ dữ liệu online với Firebase.</div><br>
 <section id="parentView" class="hidden">
+<div class="card"><h2>🧑‍💼 Việc cần làm của Bố/Mẹ</h2><p class="meta">Ghi nhanh công việc hằng ngày/tuần để tránh bỏ sót.</p><label>Việc cần làm</label><textarea id="parentWork" rows="2" placeholder="VD: Nộp báo cáo tuần, đóng học phí, đặt lịch khám..."></textarea><div class="row"><div><label>Hạn hoàn thành</label><input id="parentDue" type="datetime-local"></div><div><label>Mức độ</label><select id="parentPriority"><option>Bình thường</option><option>Quan trọng</option><option>Gấp</option></select></div></div><button class="primary" onclick="addParentWork()">➕ Thêm việc cần làm</button><div id="parentWorkList" style="margin-top:12px"></div></div>
 <div class="stats"><div class="stat">Chưa làm<b id="sOpen">0</b></div><div class="stat">Hôm nay<b id="sToday">0</b></div><div class="stat">Quá hạn<b id="sLate">0</b></div><div class="stat">Đã xong<b id="sDone">0</b></div></div><br>
 <div class="grid"><div>
 <div class="card"><h2>✍️ Giao bài mới</h2><div class="row"><div><label>Giao cho</label><select id="child"><option value="6">Học sinh lớp 6</option><option value="3">Học sinh lớp 3</option></select></div><div><label>Môn</label><input id="subject" placeholder="Toán, Văn, Anh..."></div></div>
@@ -77,10 +78,12 @@ function scheduleHTML(arr){return '<table class="schedule"><tr><th>Ngày</th><th
 function render(){
  const now=new Date(),today=new Date().toLocaleDateString("en-CA");
  if(profile?.role==="parent"){
-  $("sOpen").textContent=tasks.filter(x=>!x.done).length;$("sDone").textContent=tasks.filter(x=>x.done).length;
-  $("sLate").textContent=tasks.filter(x=>!x.done&&x.due&&dueDate(x.due)<now).length;
-  $("sToday").textContent=tasks.filter(x=>x.due&&x.due.slice(0,10)===today).length;
-  $("allTasks").innerHTML=tasks.length?tasks.map(x=>taskHTML(x,true)).join(""):"Chưa có bài được giao.";
+  const schoolTasks=tasks.filter(x=>x.child==="6"||x.child==="3"), parentTasks=tasks.filter(x=>x.child==="parent");
+  $("sOpen").textContent=schoolTasks.filter(x=>!x.done).length;$("sDone").textContent=schoolTasks.filter(x=>x.done).length;
+  $("sLate").textContent=schoolTasks.filter(x=>!x.done&&x.due&&dueDate(x.due)<now).length;
+  $("sToday").textContent=schoolTasks.filter(x=>x.due&&x.due.slice(0,10)===today).length;
+  $("allTasks").innerHTML=schoolTasks.length?schoolTasks.map(x=>taskHTML(x,true)).join(""):"Chưa có bài được giao.";
+  $("parentWorkList").innerHTML=parentTasks.length?parentTasks.map(x=>taskHTML(x,true)).join(""):"<p class=\"meta\">Chưa có việc cá nhân cần làm.</p>";
   $("allSchedule").innerHTML=scheduleHTML(schedule);
  }else if(profile){
   const open=tasks.filter(x=>!x.done);
@@ -98,6 +101,7 @@ function listen(){
 }
 window.login=async()=>{try{$("loginMsg").classList.add("hidden");await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value)}catch(e){$("loginMsg").textContent="Đăng nhập chưa thành công. Kiểm tra email và mật khẩu."; $("loginMsg").className="notice error"}};
 window.logout=()=>signOut(auth);
+window.addParentWork=async()=>{if(!profile||profile.role!=="parent")return;const text=$("parentWork").value.trim();if(!text)return alert("Nhập việc Bố/Mẹ cần làm.");await addDoc(collection(db,"tasks"),{child:"parent",subject:"Việc Bố/Mẹ",content:text,due:$("parentDue").value,priority:$("parentPriority").value,done:false,doneAt:null,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});$("parentWork").value="";$("parentDue").value=""};
 window.addTask=async()=>{if(!profile||profile.role!=="parent")return;if(!$("content").value.trim())return alert("Nhập nội dung bài cần làm.");await addDoc(collection(db,"tasks"),{child:$("child").value,subject:$("subject").value.trim()||"Bài tập",content:$("content").value.trim(),due:$("due").value,priority:$("priority").value,done:false,doneAt:null,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});$("content").value="";$("subject").value=""};
 window.addSchedule=async()=>{if(!profile||profile.role!=="parent")return;if(!$("schText").value.trim())return alert("Nhập nội dung lịch học.");await addDoc(collection(db,"schedule"),{child:$("schChild").value,day:$("schDay").value.trim(),time:$("schTime").value.trim(),text:$("schText").value.trim(),createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});$("schText").value=""};
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-action]");if(!b)return;const ref=doc(db,"tasks",b.dataset.id);try{if(b.dataset.action==="done")await updateDoc(ref,{done:true,doneAt:serverTimestamp()});if(b.dataset.action==="reopen"&&profile.role==="parent")await updateDoc(ref,{done:false,doneAt:null});if(b.dataset.action==="delete"&&profile.role==="parent"&&confirm("Xóa bài này?"))await deleteDoc(ref)}catch(err){alert("Không thể cập nhật: "+err.message)}});

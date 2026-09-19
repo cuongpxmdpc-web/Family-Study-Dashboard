@@ -94,7 +94,18 @@ function taskHTML(t,parent){
  const state=t.done?"done":isToday?"todaytask":d&&d>now?"futuretask":"";
  return '<div class="task '+state+'"><span class="pill '+(t.done?'complete':late?'urgent':isToday?'todaytag':'')+'">'+esc(label)+'</span><h3>'+esc(t.subject||"Bài tập")+' — '+esc(t.content)+'</h3><div class="meta">'+(t.child==="parent"?"🧑‍💼 Bố/Mẹ":"🎒 Lớp "+esc(t.child))+' • ⏰ '+(d?'<b>'+weekdayVN(d)+'</b> • '+d.toLocaleString("vi-VN"):"Không đặt hạn")+'</div><div style="margin-top:9px">'+(!t.done?'<button class="green" data-action="done" data-id="'+t.id+'">✅ '+(parent?'Đánh dấu xong':'Con đã hoàn thành')+'</button>':parent?'<button data-action="reopen" data-id="'+t.id+'">↩ Mở lại</button>':'')+(parent?' <button data-action="edit" data-id="'+t.id+'">✏️ Sửa</button> <button class="danger" data-action="delete" data-id="'+t.id+'">Xóa</button>':'')+'</div></div>';
 }
-function scheduleHTML(arr){return '<table class="schedule"><tr><th>Ngày</th><th>Giờ</th><th>Nội dung</th></tr>'+arr.map(x=>'<tr><td>'+esc(x.day)+'</td><td>'+esc(x.time)+'</td><td>'+esc(x.text)+'</td></tr>').join('')+'</table>'}
+function nextScheduleDate(x){
+ const map={"chủ nhật":0,"cn":0,"thứ 2":1,"thứ hai":1,"thứ 3":2,"thứ ba":2,"thứ 4":3,"thứ tư":3,"thứ 5":4,"thứ năm":4,"thứ 6":5,"thứ sáu":5,"thứ 7":6,"thứ bảy":6};
+ const key=String(x.day||"").trim().toLowerCase(),target=map[key];if(target===undefined)return null;
+ const now=new Date(),d=new Date(now);d.setHours(0,0,0,0);let add=(target-d.getDay()+7)%7;d.setDate(d.getDate()+add);
+ const m=String(x.time||"").match(/(\d{1,2}):(\d{2})/);if(m)d.setHours(Number(m[1]),Number(m[2]),0,0);else d.setHours(23,59,59,999);
+ if(d<now){d.setDate(d.getDate()+7)}return d;
+}
+function scheduleHTML(arr){
+ const upcoming=arr.map(x=>({...x,_next:nextScheduleDate(x)})).filter(x=>x._next).sort((a,b)=>a._next-b._next);
+ if(!upcoming.length)return '<p class="meta">Chưa có lịch học sắp tới.</p>';
+ return '<table class="schedule"><tr><th>Lịch tiếp theo</th><th>Giờ</th><th>Nội dung</th></tr>'+upcoming.map(x=>'<tr><td><b>'+weekdayVN(x._next)+'</b><br>'+x._next.toLocaleDateString("vi-VN")+'</td><td>'+esc(x.time)+'</td><td>'+esc(x.text)+'</td></tr>').join('')+'</table>';
+}
 function orderedHTML(arr,parent){
  const now=new Date(),tk=dateKey(now),active=arr.filter(x=>!x.done),done=arr.filter(x=>x.done);
  const late=active.filter(x=>x.due&&dueDate(x.due)<now&&dateKey(x.due)!==tk).sort((a,b)=>dueDate(a.due)-dueDate(b.due));

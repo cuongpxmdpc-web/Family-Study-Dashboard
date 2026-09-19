@@ -85,7 +85,8 @@ $("today").textContent=new Date().toLocaleDateString("vi-VN",{weekday:"long",day
 
 function clearSubs(){unsubs.forEach(f=>f());unsubs=[]}
 function showErr(msg){$("syncMsg").className="notice error";$("syncMsg").textContent="⚠️ "+msg}
-function dueDate(v){return v?new Date(v):null}\nfunction weekdayVN(d){return d?d.toLocaleDateString("vi-VN",{weekday:"long"}):""}
+function dueDate(v){return v?new Date(v):null}
+function weekdayVN(d){return d?d.toLocaleDateString("vi-VN",{weekday:"long"}):""}
 function dateKey(d){if(!d)return "";const x=new Date(d);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0")}
 function taskHTML(t,parent){
  const d=dueDate(t.due),now=new Date(),todayKey=dateKey(now),isToday=d&&dateKey(d)===todayKey,late=d&&!t.done&&d<now&&!isToday,label=t.done?"ĐÃ XONG":late?"QUÁ HẠN":isToday?"HÔM NAY":(t.priority||"Bình thường");

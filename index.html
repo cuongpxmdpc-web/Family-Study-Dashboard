@@ -98,11 +98,12 @@ function nextScheduleDate(x){
  const map={"chủ nhật":0,"cn":0,"thứ 2":1,"thứ hai":1,"thứ 3":2,"thứ ba":2,"thứ 4":3,"thứ tư":3,"thứ 5":4,"thứ năm":4,"thứ 6":5,"thứ sáu":5,"thứ 7":6,"thứ bảy":6};
  const key=String(x.day||"").trim().toLowerCase(),target=map[key];if(target===undefined)return null;
  const now=new Date(),d=new Date(now);d.setHours(0,0,0,0);let add=(target-d.getDay()+7)%7;d.setDate(d.getDate()+add);
- const m=String(x.time||"").match(/(\d{1,2}):(\d{2})/);if(m)d.setHours(Number(m[1]),Number(m[2]),0,0);else d.setHours(23,59,59,999);
- if(d<now){d.setDate(d.getDate()+7)}return d;
+ const range=String(x.time||"").match(/(\d{1,2}):(\d{2})(?:\s*[-–]\s*(\d{1,2}):(\d{2}))?/);
+ if(range){const hh=Number(range[3]??range[1]),mm=Number(range[4]??range[2]);d.setHours(hh,mm,0,0)}else d.setHours(23,59,59,999);
+ if(d<now)d.setDate(d.getDate()+7);return d;
 }
 function scheduleHTML(arr){
- const upcoming=arr.map(x=>({...x,_next:nextScheduleDate(x)})).filter(x=>x._next).sort((a,b)=>a._next-b._next);
+ const now=new Date(),upcoming=arr.map(x=>({...x,_next:nextScheduleDate(x)})).filter(x=>x._next&&x._next>=now).sort((a,b)=>a._next-b._next);
  if(!upcoming.length)return '<p class="meta">Chưa có lịch học sắp tới.</p>';
  return '<table class="schedule"><tr><th>Lịch tiếp theo</th><th>Giờ</th><th>Nội dung</th></tr>'+upcoming.map(x=>'<tr><td><b>'+weekdayVN(x._next)+'</b><br>'+x._next.toLocaleDateString("vi-VN")+'</td><td>'+esc(x.time)+'</td><td>'+esc(x.text)+'</td></tr>').join('')+'</table>';
 }

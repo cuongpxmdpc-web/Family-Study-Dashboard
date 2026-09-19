@@ -17,7 +17,7 @@ service cloud.firestore {
       allow update: if parent()
         || (child(resource.data.child)
             && request.resource.data.diff(resource.data).affectedKeys()
-                 .hasOnly(['done','doneAt']));
+                 .hasOnly(['done','doneAt','helpNote']));
     }
 
     match /schedule/{id} {

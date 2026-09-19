@@ -41,19 +41,22 @@ button{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:poin
 <section id="parentView" class="hidden">
 <div class="parent-layout">
 <nav class="side-menu">
-<button class="active" data-ptab="overview">📊 Tổng hợp</button>
+<button class="active" data-ptab="overview">📊 Tổng hợp & đánh giá</button>
 <button data-ptab="parentwork">🧑‍💼 Việc Bố/Mẹ</button>
 <button data-ptab="assign">✍️ Giao bài cho con</button>
-<button data-ptab="schedule">📅 Lịch học</button><button data-ptab="history">🗂️ Lịch sử & đánh giá</button><button data-ptab="export">📥 Xuất Excel</button>
+<button data-ptab="schedule">📅 Lịch học từng con</button><button data-ptab="history">🗂️ Lịch sử & đánh giá</button><button data-ptab="export">📥 Xuất Excel</button>
 </nav>
 <div>
 <div id="ptab-overview" class="parent-tab active">
-<div class="card"><h2>📊 Tổng hợp công việc từng người</h2><p class="meta">Theo dõi riêng trạng thái chưa hoàn thành, quá hạn và đã hoàn thành.</p>
+<div class="card"><h2>📊 Tổng hợp & đánh giá gia đình</h2><p class="meta">Chỉ hiển thị số liệu đánh giá. Danh sách chi tiết được tách riêng ở các phần bên dưới để dễ theo dõi.</p>
 <div class="person-grid">
-<div class="person-card person-parent"><h2>🧑‍💼 Việc của Bố/Mẹ</h2><div class="mini-stats"><div class="mini-stat">Chưa xong<b id="pOpen">0</b></div><div class="mini-stat">Quá hạn<b id="pLate">0</b></div><div class="mini-stat">Đã xong<b id="pDone">0</b></div></div><div id="pTasks" class="scrollbox"></div></div>
-<div class="person-card person-6"><h2>🎒 Việc của Con lớp 6</h2><div class="mini-stats"><div class="mini-stat">Chưa xong<b id="c6Open">0</b></div><div class="mini-stat">Quá hạn<b id="c6Late">0</b></div><div class="mini-stat">Đã xong<b id="c6Done">0</b></div></div><div id="c6Tasks" class="scrollbox"></div></div>
-<div class="person-card person-3"><h2>📘 Việc của Con lớp 3</h2><div class="mini-stats"><div class="mini-stat">Chưa xong<b id="c3Open">0</b></div><div class="mini-stat">Quá hạn<b id="c3Late">0</b></div><div class="mini-stat">Đã xong<b id="c3Done">0</b></div></div><div id="c3Tasks" class="scrollbox"></div></div>
-</div></div></div>
+<div class="person-card person-parent"><h2>🧑‍💼 Bố/Mẹ</h2><div class="mini-stats"><div class="mini-stat">Chưa xong<b id="pOpen">0</b></div><div class="mini-stat">Quá hạn<b id="pLate">0</b></div><div class="mini-stat">Đã xong<b id="pDone">0</b></div></div></div>
+<div class="person-card person-6"><h2>🎒 Con lớp 6</h2><div class="mini-stats"><div class="mini-stat">Chưa xong<b id="c6Open">0</b></div><div class="mini-stat">Quá hạn<b id="c6Late">0</b></div><div class="mini-stat">Đã xong<b id="c6Done">0</b></div></div></div>
+<div class="person-card person-3"><h2>📘 Con lớp 3</h2><div class="mini-stats"><div class="mini-stat">Chưa xong<b id="c3Open">0</b></div><div class="mini-stat">Quá hạn<b id="c3Late">0</b></div><div class="mini-stat">Đã xong<b id="c3Done">0</b></div></div></div>
+</div></div>
+<div class="card"><h2>📋 Danh sách công việc riêng</h2><div class="person-grid"><div class="person-card person-parent"><h2>🧑‍💼 Bố/Mẹ</h2><div id="pTasks" class="scrollbox"></div></div><div class="person-card person-6"><h2>🎒 Con lớp 6</h2><div id="c6Tasks" class="scrollbox"></div></div><div class="person-card person-3"><h2>📘 Con lớp 3</h2><div id="c3Tasks" class="scrollbox"></div></div></div></div>
+<div class="card"><h2>📅 Lịch học riêng từng con</h2><div class="row"><div class="person-card person-6"><h2>🎒 Lịch Con lớp 6</h2><div id="overviewSchedule6" class="scrollbox"></div></div><div class="person-card person-3"><h2>📘 Lịch Con lớp 3</h2><div id="overviewSchedule3" class="scrollbox"></div></div></div></div>
+</div>
 <div id="ptab-export" class="parent-tab"><div class="card"><h2>📥 Xuất Excel theo nhu cầu</h2><p class="meta">Chọn phạm vi dữ liệu cần xuất. Mỗi file gồm bài tập/công việc, lịch học sắp tới và lịch học đã qua phù hợp với người được chọn.</p><div class="row"><div><label>Phạm vi</label><select id="exportScope"><option value="family">👨‍👩‍👧‍👧 Chung cả gia đình</option><option value="parent">🧑‍💼 Riêng Bố/Mẹ</option><option value="6">🎒 Riêng Con lớp 6</option><option value="3">📘 Riêng Con lớp 3</option></select></div><div><label>Nội dung xuất</label><select id="exportContent"><option value="all">Tất cả: công việc + lịch học</option><option value="tasks">Chỉ bài tập / công việc</option><option value="schedule">Chỉ lịch học</option></select></div></div><button class="primary" onclick="exportExcelSelected()">📥 Xuất file Excel</button></div></div>
 <div id="ptab-parentwork" class="parent-tab"><div class="card"><h2>🧑‍💼 Việc cần làm của Bố/Mẹ</h2><p class="meta">Ghi nhanh công việc hằng ngày/tuần để tránh bỏ sót.</p><label>Việc cần làm</label><textarea id="parentWork" rows="2" placeholder="VD: Nộp báo cáo tuần, đóng học phí..."></textarea><div class="row"><div><label>Hạn hoàn thành</label><input id="parentDue" type="datetime-local"></div><div><label>Mức độ</label><select id="parentPriority"><option>Bình thường</option><option>Quan trọng</option><option>Gấp</option></select></div></div><button class="primary" onclick="addParentWork()">➕ Thêm việc cần làm</button></div><div class="card"><h2>📋 Danh sách việc Bố/Mẹ</h2><div id="parentWorkList" class="scrollbox"></div></div></div>
 <div id="ptab-assign" class="parent-tab"><div class="card"><h2>✍️ Giao bài cho con</h2><div class="row"><div><label>Giao cho</label><select id="child"><option value="6">Học sinh lớp 6</option><option value="3">Học sinh lớp 3</option></select></div><div><label>Môn</label><input id="subject" placeholder="Toán, Văn, Anh..."></div></div><label>Nội dung cần làm</label><textarea id="content" rows="3" placeholder="VD: Làm bài 1–5 trang 36..."></textarea><div class="row"><div><label>Hạn hoàn thành</label><input id="due" type="datetime-local"></div><div><label>Mức độ</label><select id="priority"><option>Bình thường</option><option>Quan trọng</option><option>Gấp</option></select></div></div><button class="primary" onclick="addTask()">➕ Giao bài</button></div><div class="card"><h2>📋 Bài đã giao</h2><p class="meta">Bài tập được tách riêng theo từng con để dễ theo dõi.</p><div class="row"><div class="person-card person-6"><h2>🎒 Con lớp 6</h2><div class="mini-stats"><div class="mini-stat">Chưa xong<b id="a6Open">0</b></div><div class="mini-stat">Quá hạn<b id="a6Late">0</b></div><div class="mini-stat">Đã xong<b id="a6Done">0</b></div></div><div id="assigned6" class="scrollbox"></div></div><div class="person-card person-3"><h2>📘 Con lớp 3</h2><div class="mini-stats"><div class="mini-stat">Chưa xong<b id="a3Open">0</b></div><div class="mini-stat">Quá hạn<b id="a3Late">0</b></div><div class="mini-stat">Đã xong<b id="a3Done">0</b></div></div><div id="assigned3" class="scrollbox"></div></div></div></div></div>
@@ -62,7 +65,7 @@ button{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:poin
 <label>Kiểu lịch</label><select id="schType" onchange="toggleScheduleType()"><option value="once">Một lần</option><option value="weekly">Lặp hàng tuần</option></select>
 <div id="schOnce"><label>Chọn ngày học</label><input id="schDate" type="date"></div>
 <div id="schWeekly" class="hidden"><label>Chọn thứ</label><select id="schWeekday"><option value="Thứ 2">Thứ 2</option><option value="Thứ 3">Thứ 3</option><option value="Thứ 4">Thứ 4</option><option value="Thứ 5">Thứ 5</option><option value="Thứ 6">Thứ 6</option><option value="Thứ 7">Thứ 7</option><option value="Chủ Nhật">Chủ Nhật</option></select></div>
-<label>Khung giờ</label><div class="row"><div><label>Giờ bắt đầu</label><input id="schStart" type="time" value="07:00"></div><div><label>Giờ kết thúc</label><input id="schEnd" type="time" value="09:00"></div></div><input id="schText" placeholder="Học chính / Tiếng Anh / Toán..."><button class="primary" onclick="addSchedule()">+ Thêm lịch</button></div><div class="card"><h2>🗓 Lịch học đã lập cho các con</h2><p class="meta">Chỉ hiển thị lịch sắp tới. Bố/Mẹ có thể sửa hoặc xóa lịch tại đây.</p><div id="allSchedule" class="scrollbox"></div></div></div>
+<label>Khung giờ</label><div class="row"><div><label>Giờ bắt đầu</label><input id="schStart" type="time" value="07:00"></div><div><label>Giờ kết thúc</label><input id="schEnd" type="time" value="09:00"></div></div><input id="schText" placeholder="Học chính / Tiếng Anh / Toán..."><button class="primary" onclick="addSchedule()">+ Thêm lịch</button></div><div class="card"><h2>🗓 Lịch học đã lập — tách riêng từng con</h2><p class="meta">Mỗi con có một danh sách lịch riêng. Bố/Mẹ có thể sửa hoặc xóa trực tiếp.</p><div class="row"><div class="person-card person-6"><h2>🎒 Con lớp 6</h2><div id="schedule6" class="scrollbox"></div></div><div class="person-card person-3"><h2>📘 Con lớp 3</h2><div id="schedule3" class="scrollbox"></div></div></div></div></div>
 </div></div>
 </section>
 
@@ -154,7 +157,7 @@ function orderedHTML(arr,parent){
 function personSummary(arr,prefix,listId){
  const now=new Date(), sorted=[...arr];
  $(prefix+"Open").textContent=arr.filter(x=>!x.done).length;$(prefix+"Late").textContent=arr.filter(x=>!x.done&&x.due&&dueDate(x.due)<now).length;$(prefix+"Done").textContent=arr.filter(x=>x.done).length;
- $(listId).innerHTML=orderedHTML(sorted,true);
+ if($(listId))$(listId).innerHTML=orderedHTML(sorted,true);
 }
 function renderHistory(){
  if(!profile||profile.role!=="parent"||!$("historyOnTime"))return;
@@ -178,7 +181,10 @@ function render(){
   const fillAssigned=(arr,prefix,id)=>{const n=new Date();$(prefix+"Open").textContent=arr.filter(x=>!x.done).length;$(prefix+"Late").textContent=arr.filter(x=>!x.done&&x.due&&dueDate(x.due)<n).length;$(prefix+"Done").textContent=arr.filter(x=>x.done).length;$(id).innerHTML=orderedHTML(arr,true)};
   fillAssigned(child6,"a6","assigned6");fillAssigned(child3,"a3","assigned3");
   $("parentWorkList").className="scrollbox"; $("parentWorkList").innerHTML=orderedHTML(parentTasks,true);
-  $("allSchedule").innerHTML=scheduleHTML(schedule,true); $("pastSchedule").innerHTML=pastScheduleHTML(schedule); renderHistory();
+  const sch6=schedule.filter(x=>x.child==="6"),sch3=schedule.filter(x=>x.child==="3");
+  $("schedule6").innerHTML=scheduleHTML(sch6,true);$("schedule3").innerHTML=scheduleHTML(sch3,true);
+  $("overviewSchedule6").innerHTML=scheduleHTML(sch6,false);$("overviewSchedule3").innerHTML=scheduleHTML(sch3,false);
+  $("pastSchedule").innerHTML=pastScheduleHTML(schedule); renderHistory();
  }else if(profile){
   const open=tasks.filter(x=>!x.done), late=tasks.filter(x=>!x.done&&x.due&&dueDate(x.due)<now), done=tasks.filter(x=>x.done);
   $("stTotal").textContent=tasks.length;$("stOpen").textContent=open.length;$("stLate").textContent=late.length;$("stDone").textContent=done.length;
